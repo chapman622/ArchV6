@@ -13,27 +13,7 @@
   <script src="https://www.unpkg.com/alt1/dist/ocr/index.js"></script>
   <script src="https://www.unpkg.com/alt1/dist/chatbox/index.js"></script>
   <style>
-    :root {
-      --bg:#0c0b09;
-      --surface:#141210;
-      --surface2:#1c1a14;
-      --border:#2e2618;
-      --border2:#3d3220;
-      --accent:#c8952a;
-      --accent2:#8fbf6a;
-      --accent3:#5ba8d4;
-      --dim:#6b5b3e;
-      --text:#e8dcc8;
-      --muted:#7a6a50;
-      --danger:#bf4a3a;
-      --zarosian:#9b59b6;
-      --zamorakian:#c0392b;
-      --saradominist:#2980b9;
-      --armadylean:#27ae60;
-      --bandosian:#d35400;
-      --dragonkin:#c0006a;
-      --agnostic:#7f8c8d;
-    }
+    :root{--bg:#0c0b09;--surface:#141210;--surface2:#1c1a14;--border:#2e2618;--border2:#3d3220;--accent:#c8952a;--accent2:#8fbf6a;--accent3:#5ba8d4;--dim:#6b5b3e;--text:#e8dcc8;--muted:#7a6a50;--danger:#bf4a3a;--zarosian:#9b59b6;--zamorakian:#c0392b;--saradominist:#2980b9;--armadylean:#27ae60;--bandosian:#d35400;--dragonkin:#c0006a;--agnostic:#7f8c8d;}
     *{box-sizing:border-box;margin:0;padding:0;}
     body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:11px;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
     header{background:linear-gradient(135deg,#1a1510,#221c12,#1a1510);border-bottom:1px solid var(--accent);padding:5px 9px;display:flex;align-items:center;gap:7px;flex-shrink:0;}
@@ -234,11 +214,7 @@
 </div>
 
 <script>
-const CULTURE_COL = {
-  Agnostic:"#7f8c8d", Zarosian:"#9b59b6", Zamorakian:"#c0392b", Saradominist:"#2980b9",
-  Armadylean:"#27ae60", Bandosian:"#d35400", Dragonkin:"#c0006a"
-};
-
+const CULTURE_COL = {Agnostic:"#7f8c8d",Zarosian:"#9b59b6",Zamorakian:"#c0392b",Saradominist:"#2980b9",Armadylean:"#27ae60",Bandosian:"#d35400",Dragonkin:"#c0006a"};
 const MATS = [
   {name:"Third Age iron",lv:5,c:"Agnostic"},{name:"Zarosian insignia",lv:5,c:"Zarosian"},
   {name:"Samite silk",lv:12,c:"Agnostic"},{name:"Imperial steel",lv:12,c:"Zarosian"},
@@ -261,7 +237,6 @@ const MATS = [
   {name:"Praesulic essence (magic)",lv:87,c:"Zarosian"},{name:"Quintessence",lv:87,c:"Dragonkin"},
   {name:"Imbued slate",lv:90,c:"Dragonkin"},{name:"Warforged bronze",lv:93,c:"Bandosian"},
 ];
-
 const ARTEFACTS = [
   {name:"Centurion's dress sword",site:"Kharid-et",lv:5,xp:500,mats:{"Third Age iron":16,"Zarosian insignia":14}},
   {name:"Legionary sword",site:"Kharid-et",lv:5,xp:500,mats:{"Third Age iron":20,"Zarosian insignia":10}},
@@ -307,7 +282,6 @@ const ARTEFACTS = [
   {name:"Praesulic robes",site:"Senntisten",lv:87,xp:22000,mats:{"Praesulic essence (melee)":30,"Praesulic essence (ranged)":24,"Praesulic essence (magic)":18}},
   {name:"Zarosian warstaff",site:"Senntisten",lv:87,xp:22000,mats:{"Praesulic essence (magic)":32,"Zaryte fragments":26,"Imbued slate":16}},
 ];
-
 const STORAGE_ORDER = [
   "Third Age iron","Samite silk","White oak","Goldrune","Orthenglass",
   "Vellum","Leather scraps","Soapstone","Animal furs","Fossilised bone",
@@ -318,7 +292,6 @@ const STORAGE_ORDER = [
   "Cadmium red","Chaotic brimstone","Demonhide","Eye of Dagon","Hellfire metal",
   "Zarosian insignia","Imperial steel","Ancient vis","Tyrian purple","Blood of Orcus"
 ];
-
 const KEY = "archtracker_v4";
 let S = {counts:{},goals:{},session:null};
 let ocrParsed = {};
@@ -327,7 +300,7 @@ let storedWinY = parseInt(localStorage.getItem("archStorageWinY")) || null;
 let storedWinWidth = parseInt(localStorage.getItem("archStorageWinWidth")) || 500;
 let storedWinHeight = parseInt(localStorage.getItem("archStorageWinHeight")) || 342;
 
-// Tuned values
+// Tuned values for top scan
 let offsetX = 10;
 let offsetY = 66;
 let offsetY2 = 78;
@@ -495,10 +468,7 @@ async function performScan(startIdx, endIdx, label, useOffsetY) {
           const numX = absX + offsetX + (slot * horizStep);
           alt1.overLayRect(A1lib.mixColor(0,255,0), numX - 5, numY - 2, 64, 14, 4000, 1);
           const num = readNumberAt(numX + 24, numY + 9);
-          if (num !== null) {
-            results[mat] = num;
-            good++;
-          }
+          if (num !== null) { results[mat] = num; good++; }
           await new Promise(r => setTimeout(r, 100));
         }
       }
@@ -518,9 +488,9 @@ function showOCRRes(parsed) {
   const keys = Object.keys(parsed);
   document.getElementById("ocr-summary").textContent = keys.length ? "Detected " + keys.length + " materials:" : "No values detected.";
   document.getElementById("ocr-match-list").innerHTML = keys.map(k =>
-    `<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border)">
-      <span style="color:var(--accent2)">${k}</span>
-      <span style="color:var(--accent)">${parsed[k].toLocaleString()}</span>
+    `<div style='display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border)'>
+      <span style='color:var(--accent2)'>${k}</span>
+      <span style='color:var(--accent)'>${parsed[k].toLocaleString()}</span>
     </div>`
   ).join("");
   document.getElementById("ocr-results").style.display = "block";
@@ -534,12 +504,12 @@ function startLocate() {
   const div = document.createElement("div");
   div.id = "coord-input";
   div.style.cssText = "display:flex;gap:5px;align-items:center;flex-wrap:wrap;font-size:9px;color:var(--muted);margin-top:4px";
-  div.innerHTML = `X:<input type="number" id="coord-x" class="tin" style="width:58px" placeholder="e.g.555" value="${storedWinX || ""}"> 
-    Y:<input type="number" id="coord-y" class="tin" style="width:58px" placeholder="e.g.285" value="${storedWinY || ""}"> 
-    W:<input type="number" id="coord-w" class="tin" style="width:52px" value="${storedWinWidth}"> 
-    H:<input type="number" id="coord-h" class="tin" style="width:52px" value="${storedWinHeight}"> 
-    <button class="btn suc" id="btn-coord-set" style="font-size:9px">Set</button> 
-    <button class="btn" id="btn-validate" style="font-size:9px">Validate</button>`;
+  div.innerHTML = `X:<input type='number' id='coord-x' class='tin' style='width:58px' placeholder='e.g.555' value='${storedWinX || ""}'> 
+    Y:<input type='number' id='coord-y' class='tin' style='width:58px' placeholder='e.g.285' value='${storedWinY || ""}'> 
+    W:<input type='number' id='coord-w' class='tin' style='width:52px' value='${storedWinWidth}'> 
+    H:<input type='number' id='coord-h' class='tin' style='width:52px' value='${storedWinHeight}'> 
+    <button class='btn suc' id='btn-coord-set' style='font-size:9px'>Set</button> 
+    <button class='btn' id='btn-validate' style='font-size:9px'>Validate</button>`;
   btn.parentNode.insertBefore(div, btn.nextSibling);
   document.getElementById("btn-coord-set").addEventListener("click", () => {
     const x = parseInt(document.getElementById("coord-x").value);
@@ -556,7 +526,7 @@ function startLocate() {
     localStorage.setItem("archStorageWinY", y);
     localStorage.setItem("archStorageWinWidth", w);
     localStorage.setItem("archStorageWinHeight", h);
-    status.textContent = `Saved (${x}, ${y}) ${w}x${h}`;
+    status.textContent = "Saved (" + x + ", " + y + ") " + w + "x" + h;
     status.style.color = "var(--accent2)";
     div.remove();
   });
@@ -572,6 +542,10 @@ function load() {
     const s = localStorage.getItem(KEY);
     if (s) S = JSON.parse(s);
   } catch (e) {}
+  STORAGE_ORDER.forEach(name => {
+    if (S.counts[name] == null) S.counts[name] = 0;
+    if (S.goals[name] == null) S.goals[name] = 0;
+  });
   MATS.forEach(m => {
     if (S.counts[m.name] == null) S.counts[m.name] = 0;
     if (S.goals[m.name] == null) S.goals[m.name] = 0;
@@ -598,21 +572,21 @@ function renderMats() {
     const pct = goal > 0 ? Math.min(100, Math.round(have / goal * 100)) : (have > 0 ? 100 : 0);
     const cls = goal > 0 ? (pct >= 100 ? "full" : pct >= 50 ? "mid" : "low") : "low";
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td><div class="mn"><span class="cdot" style="background:${CULTURE_COL[mat.c]}"></span>${mat.name}</div></td>
-      <td style="text-align:center;color:var(--muted)">${mat.lv}</td>
-      <td><div class="cc"><button class="btn-xs" data-a="dec" data-n="${mat.name}">−</button>
-      <input class="ci" type="number" min="0" value="${have}" data-n="${mat.name}">
-      <button class="btn-xs" data-a="inc" data-n="${mat.name}">+</button></div></td>
-      <td><input class="gi" type="number" min="0" value="${goal}" data-g="${mat.name}"></td>
-      <td style="text-align:right"><div class="pw" style="margin-left:auto"><div class="pb ${cls}" style="width:${pct}%"></div></div>
-      <div style="font-size:9px;color:var(--muted);text-align:right">${goal > 0 ? pct + "%" : "—"}</div></td>`;
+    tr.innerHTML = `<td><div class='mn'><span class='cdot' style='background:${CULTURE_COL[mat.c]}'></span>${mat.name}</div></td>
+      <td style='text-align:center;color:var(--muted)'>${mat.lv}</td>
+      <td><div class='cc'><button class='btn-xs' data-a='dec' data-n='${mat.name}'>−</button>
+      <input class='ci' type='number' min='0' value='${have}' data-n='${mat.name}'>
+      <button class='btn-xs' data-a='inc' data-n='${mat.name}'>+</button></div></td>
+      <td><input class='gi' type='number' min='0' value='${goal}' data-g='${mat.name}'></td>
+      <td style='text-align:right'><div class='pw' style='margin-left:auto'><div class='pb ${cls}' style='width:${pct}%'></div></div>
+      <div style='font-size:9px;color:var(--muted);text-align:right'>${goal > 0 ? pct + "%" : "—"}</div></td>`;
     tb.appendChild(tr);
   });
 }
 
 function renderLegend() {
   document.getElementById("legend").innerHTML = Object.entries(CULTURE_COL).map(e =>
-    `<div class="li"><span class="cdot" style="background:${e[1]}"></span>${e[0]}</div>`
+    `<div class='li'><span class='cdot' style='background:${e[1]}'></span>${e[0]}</div>`
   ).join("");
 }
 
@@ -874,15 +848,15 @@ document.getElementById("btn-scan-bottom").addEventListener("click", () => {
 document.getElementById("btn-locate").addEventListener("click", startLocate);
 
 document.getElementById("btn-ocr-apply").addEventListener("click", () => {
-  Object.entries(ocrParsed).forEach(e => {
-    if (S.counts[e[0]] !== undefined) S.counts[e[0]] = e[1];
+  Object.entries(ocrParsed).forEach(([matName, count]) => {
+    S.counts[matName] = count;  // Force set even if not in MATS
   });
   save();
   renderMats();
   renderArts();
   renderSessionMats();
   document.getElementById("ocr-results").style.display = "none";
-  document.getElementById("ocr-out").textContent = "Applied to inventory.";
+  document.getElementById("ocr-out").textContent = "Applied to inventory — " + Object.keys(ocrParsed).length + " materials updated.";
   ocrParsed = {};
 });
 
