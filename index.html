@@ -550,7 +550,7 @@
           <button class="btn" id="t-preview-top" style="font-size:9px;padding:2px 5px">👁 Preview Top Boxes</button>
           <button class="btn" id="t-preview-bot" style="font-size:9px;padding:2px 5px">👁 Preview Bottom Boxes</button>
         </div>
-        <div style="font-size:9px;color:var(--muted);margin-top:4px">Preview draws full icon grid in blue. Green = number read zone for current scan. Tune until blue fits icons perfectly.</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:4px">Preview draws full icon grid in blue. Green = number read zone. Tune until blue fits icons & green centers on numbers.</div>
       </div>
       <textarea id="paste-box" placeholder="Paste material text here..." style="display:none"></textarea>
       <button class="btn" id="btn-parse-paste" style="display:none">Parse Text</button>
@@ -801,21 +801,22 @@
           if (!isNaN(n) && n >= 0) return n;
         }
 
-        // Fallback: count bright pixels in center crop only
+        // Center crop bright count
         let brightCount = 0;
         const data = cap.data;
         const w = cap.width, h = cap.height;
-        for (let py = Math.floor(h * 0.3); py < Math.floor(h * 0.7); py++) {  // middle 40% vertically
-          for (let px = Math.floor(w * 0.3); px < Math.floor(w * 0.7); px++) {  // middle 40% horizontally
+        for (let py = Math.floor(h * 0.3); py < Math.floor(h * 0.7); py++) {
+          for (let px = Math.floor(w * 0.3); px < Math.floor(w * 0.7); px++) {
             const i = (py * w + px) * 4;
             const rv = data[i], gv = data[i+1], bv = data[i+2];
             if (rv > 160 && gv > 120 && bv > 20 && rv > gv + 20 && gv > bv + 20) brightCount++;
           }
         }
-        console.log("Bright count for slot:", brightCount);  // debug log
+        console.log(`Bright count at (${x}, ${y}): ${brightCount}`);
 
-        if (brightCount > 12) return 0;  // actual zero (very few bright pixels)
-        return null;  // failed read - do NOT force to 0
+        if (brightCount > 8) return 0;          // likely actual zero
+        if (brightCount > 3) return 999;        // TEST: non-zero detected (placeholder to see which slots work)
+        return null;                            // too few pixels - ignore
       } catch (e) {
         console.log("OCR error:", e);
         return null;
