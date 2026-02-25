@@ -800,14 +800,24 @@
           const n = parseInt(text.replace(/[^0-9]/g, ""));
           if (!isNaN(n) && n >= 0) return n;
         }
+
+        // Fallback: count bright pixels in center crop only
         let brightCount = 0;
-        for (let i = 0; i < cap.data.length; i += 4) {
-          const rv = cap.data[i], gv = cap.data[i+1], bv = cap.data[i+2];
-          if (rv > 145 && gv > 105 && bv > 5 && rv > gv && gv > bv) brightCount++;
+        const data = cap.data;
+        const w = cap.width, h = cap.height;
+        for (let py = Math.floor(h * 0.3); py < Math.floor(h * 0.7); py++) {  // middle 40% vertically
+          for (let px = Math.floor(w * 0.3); px < Math.floor(w * 0.7); px++) {  // middle 40% horizontally
+            const i = (py * w + px) * 4;
+            const rv = data[i], gv = data[i+1], bv = data[i+2];
+            if (rv > 160 && gv > 120 && bv > 20 && rv > gv + 20 && gv > bv + 20) brightCount++;
+          }
         }
-        if (brightCount > 6) return 0;
-        return null;
+        console.log("Bright count for slot:", brightCount);  // debug log
+
+        if (brightCount > 12) return 0;  // actual zero (very few bright pixels)
+        return null;  // failed read - do NOT force to 0
       } catch (e) {
+        console.log("OCR error:", e);
         return null;
       }
     }
@@ -927,12 +937,6 @@
     function save() {
       localStorage.setItem(KEY, JSON.stringify(S));
       updateStatus();
-    }
-
-    function filteredMats() {
-      const q = document.getElementById("search-box").value.toLowerCase();
-      const c = document.getElementById("filter-culture").value;
-      return MATS.filter(m => (!c || m.c === c) && (!q || m.name.toLowerCase().includes(q)));
     }
 
     function renderMats() {
