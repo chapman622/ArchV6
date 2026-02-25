@@ -191,7 +191,7 @@
         <button class="btn" id="t-preview-top" style="font-size:9px;padding:2px 5px">&#128064; Preview Top Boxes</button>
         <button class="btn" id="t-preview-bot" style="font-size:9px;padding:2px 5px">&#128064; Preview Bottom Boxes</button>
       </div>
-      <div style="font-size:9px;color:var(--muted);margin-top:4px">Preview draws full icon grid in blue. Green = number read zone for current scan. Tune until blue fits icons & green centers on numbers.</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:4px">Preview draws full icon grid in blue. Green = number read zone. Tune until blue fits icons & green centers on numbers.</div>
     </div>
     <textarea id="paste-box" placeholder="Paste material text here..." style="display:none"></textarea>
     <button class="btn" id="btn-parse-paste" style="display:none">Parse Text</button>
@@ -300,7 +300,7 @@ let storedWinY = parseInt(localStorage.getItem("archStorageWinY")) || null;
 let storedWinWidth = parseInt(localStorage.getItem("archStorageWinWidth")) || 500;
 let storedWinHeight = parseInt(localStorage.getItem("archStorageWinHeight")) || 342;
 
-// Tuned values from your latest screenshot (top scan close to perfect)
+// Tuned values (top scan optimized)
 let offsetX = 10;
 let offsetY = 66;
 let offsetY2 = 78;
@@ -328,7 +328,6 @@ function saveTuners() {
   localStorage.setItem("archOcrTuners", JSON.stringify({offsetX, offsetY, offsetY2, horizStep, rowStep, iconSize}));
 }
 
-// Wipe old invalid tuners
 (function() {
   const s = JSON.parse(localStorage.getItem("archOcrTuners") || "{}");
   if (s.rowStep && (s.rowStep < 65 || s.offsetY < 65)) {
@@ -373,7 +372,7 @@ function previewBoxes(startIdx, endIdx, useOffsetY) {
       const iconX = absX + offsetX + (slot * horizStep);
       alt1.overLayRect(A1lib.mixColor(80,180,255), iconX, iconTop, iconSize, iconSize, 8000, 2);
       if (idx >= startIdx && idx <= endIdx) {
-        alt1.overLayRect(A1lib.mixColor(0,255,0), iconX - 2, numY - 2, 60, 14, 8000, 2); // wider green
+        alt1.overLayRect(A1lib.mixColor(0,255,0), iconX - 2, numY - 2, 64, 14, 8000, 2); // even wider green
       }
     }
     storageIdx += row.slots;
@@ -387,8 +386,8 @@ document.getElementById("t-preview-bot").addEventListener("click", () => preview
 
 function readNumberAt(x, y) {
   try {
-    const captureW = 88, captureH = 78;
-    const cap = A1lib.capture(x - 28, y - 38, captureW, captureH);
+    const captureW = 96, captureH = 84;
+    const cap = A1lib.capture(x - 32, y - 42, captureW, captureH);
     if (!cap || !cap.data) return null;
     const colors = [
       [255,255,255],[255,240,180],[255,230,150],[255,220,120],
@@ -409,7 +408,8 @@ function readNumberAt(x, y) {
       [255,250,220],[255,240,200],[245,230,180],[235,220,160],
       [255,255,220],[255,255,180],[255,255,140],
       [210,155,35],[200,145,25],[195,135,20],[185,130,15],
-      [175,120,10],[215,150,30],[205,140,20],[190,130,15]
+      [175,120,10],[215,150,30],[205,140,20],[190,130,15],
+      [160,110,5],[170,115,8],[180,125,12],[190,135,18]
     ];
     let text = "";
     if (OCR && OCR.readSmallChars && OCR.smallChars) {
@@ -431,9 +431,9 @@ function readNumberAt(x, y) {
     let brightCount = 0;
     for (let i = 0; i < cap.data.length; i += 4) {
       const rv = cap.data[i], gv = cap.data[i+1], bv = cap.data[i+2];
-      if (rv > 150 && gv > 110 && bv > 5 && rv > gv && gv > bv) brightCount++;
+      if (rv > 145 && gv > 105 && bv > 5 && rv > gv && gv > bv) brightCount++;
     }
-    if (brightCount > 8) return 0;
+    if (brightCount > 6) return 0;
     return null;
   } catch (e) {
     return null;
@@ -466,8 +466,8 @@ async function performScan(startIdx, endIdx, label, useOffsetY) {
         const mat = STORAGE_ORDER[idx];
         if (mat) {
           const numX = absX + offsetX + (slot * horizStep);
-          alt1.overLayRect(A1lib.mixColor(0,255,0), numX - 5, numY - 2, 60, 14, 4000, 1);
-          const num = readNumberAt(numX + 20, numY + 6); // shifted for centering
+          alt1.overLayRect(A1lib.mixColor(0,255,0), numX - 5, numY - 2, 64, 14, 4000, 1); // wider green
+          const num = readNumberAt(numX + 24, numY + 9); // final shift for Leather scraps column
           if (num !== null) { results[mat] = num; good++; }
           await new Promise(r => setTimeout(r, 100));
         }
@@ -496,7 +496,6 @@ function showOCRRes(parsed) {
   document.getElementById("ocr-results").style.display = "block";
 }
 
-// Locate Window function
 function startLocate() {
   const status = document.getElementById("locate-status");
   const btn = document.getElementById("btn-locate");
@@ -538,7 +537,6 @@ function startLocate() {
   });
 }
 
-// Core tracker functions (load, save, renderMats, renderLegend, filteredMats, canRestore, matCulture, renderArts, session functions, etc.)
 function load() {
   try {
     const s = localStorage.getItem(KEY);
@@ -698,7 +696,6 @@ document.getElementById("art-search").addEventListener("input", renderArts);
 document.getElementById("art-site").addEventListener("change", renderArts);
 document.getElementById("art-filter").addEventListener("change", renderArts);
 
-// Session logic (unchanged)
 let sessInterval = null, sessStart = null, sessSnap = {}, sessRestores = [];
 
 function tickSession() {
@@ -720,187 +717,4 @@ function startSess() {
   sessStart = Date.now();
   sessSnap = { ...S.counts };
   sessRestores = [];
-  S.session = { start: sessStart, snap: sessSnap, restores: [] };
-  save();
-  document.getElementById("btn-sess-start").textContent = "⏸ Running...";
-  document.getElementById("btn-sess-start").disabled = true;
-  if (sessInterval) clearInterval(sessInterval);
-  sessInterval = setInterval(tickSession, 1000);
-  tickSession();
-  renderSessionLogBtns();
-  renderSessionMats();
-}
-
-function logRestore(art) {
-  if (!sessStart) return;
-  sessRestores.push({ name: art.name, xp: art.xp, t: Date.now() });
-  if (S.session) S.session.restores = sessRestores;
-  document.getElementById("recent-restores").innerHTML = sessRestores.slice(-5).reverse().map(r =>
-    `<div style='padding:1px 0'>${r.name} <span style='color:var(--accent3)'>+${r.xp.toLocaleString()} xp</span></div>`
-  ).join("");
-}
-
-function renderSessionMats() {
-  if (!document.getElementById("panel-sess").classList.contains("active")) return;
-  const rows = MATS.map(m => {
-    const g = (S.counts[m.name] || 0) - (sessSnap[m.name] || 0);
-    return g !== 0 ? { n: m.name, g } : null;
-  }).filter(Boolean);
-  const el = document.getElementById("sess-mat-list");
-  if (!sessStart) { el.textContent = "Start a session to track gains."; return; }
-  if (!rows.length) { el.textContent = "No changes yet."; return; }
-  el.innerHTML = rows.map(r =>
-    `<div style='display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border)'>
-      <span>${r.n}</span><span style='color:${r.g > 0 ? "var(--accent2)" : "var(--danger)"}'>${r.g > 0 ? "+" : ""}${r.g.toLocaleString()}</span>
-    </div>`
-  ).join("");
-}
-
-function renderSessionLogBtns() {
-  const wrap = document.getElementById("art-log-btns");
-  wrap.innerHTML = "";
-  const rs = ARTEFACTS.filter(canRestore);
-  if (!rs.length) {
-    wrap.innerHTML = "<span style='color:var(--muted);font-size:10px'>No artefacts restorable.</span>";
-    return;
-  }
-  rs.slice(0, 15).forEach(art => {
-    const b = document.createElement("button");
-    b.className = "btn";
-    b.textContent = art.name;
-    b.style.cssText = "font-size:9px;padding:2px 5px";
-    b.addEventListener("click", () => {
-      if (!sessStart) return;
-      logRestore(art);
-      save();
-      renderSessionMats();
-    });
-    wrap.appendChild(b);
-  });
-}
-
-document.getElementById("btn-sess-start").addEventListener("click", startSess);
-
-document.getElementById("btn-sess-reset").addEventListener("click", () => {
-  if (!confirm("Reset session?")) return;
-  if (sessInterval) { clearInterval(sessInterval); sessInterval = null; }
-  sessStart = null;
-  sessSnap = {};
-  sessRestores = [];
-  S.session = null;
-  save();
-  document.getElementById("sess-timer").textContent = "00:00:00";
-  document.getElementById("s-time").textContent = "--";
-  document.getElementById("s-arts").textContent = "0";
-  document.getElementById("s-xp").textContent = "0";
-  document.getElementById("s-xphr").textContent = "--";
-  document.getElementById("btn-sess-start").textContent = "▶ Start Session";
-  document.getElementById("btn-sess-start").disabled = false;
-  renderSessionMats();
-  document.getElementById("recent-restores").textContent = "";
-});
-
-function updateStatus() {
-  let total = 0, types = 0, met = 0, goaled = 0;
-  MATS.forEach(m => {
-    const c = S.counts[m.name] || 0;
-    const g = S.goals[m.name] || 0;
-    total += c;
-    if (c > 0) types++;
-    if (g > 0) {
-      goaled++;
-      if (c >= g) met++;
-    }
-  });
-  document.getElementById("s-total").textContent = total.toLocaleString();
-  document.getElementById("s-types").textContent = types;
-  document.getElementById("s-goals").textContent = met + "/" + goaled;
-  document.getElementById("s-canrest").textContent = ARTEFACTS.filter(canRestore).length;
-}
-
-document.querySelectorAll(".tab").forEach(tab => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
-    tab.classList.add("active");
-    document.getElementById("panel-" + tab.dataset.tab).classList.add("active");
-    if (tab.dataset.tab === "art") renderArts();
-    if (tab.dataset.tab === "sess") {
-      renderSessionLogBtns();
-      renderSessionMats();
-    }
-  });
-});
-
-document.getElementById("btn-scan-top").addEventListener("click", () => {
-  document.getElementById("tuner-wrap").style.display = "block";
-  loadTuners();
-  scanTop();
-});
-
-document.getElementById("btn-scan-bottom").addEventListener("click", () => {
-  document.getElementById("tuner-wrap").style.display = "block";
-  loadTuners();
-  scanBottom();
-});
-
-document.getElementById("btn-locate").addEventListener("click", startLocate);
-
-document.getElementById("btn-ocr-apply").addEventListener("click", () => {
-  Object.entries(ocrParsed).forEach(e => {
-    if (S.counts[e[0]] !== undefined) S.counts[e[0]] = e[1];
-  });
-  save();
-  renderMats();
-  renderArts();
-  renderSessionMats();
-  document.getElementById("ocr-results").style.display = "none";
-  document.getElementById("ocr-out").textContent = "Applied to inventory.";
-  ocrParsed = {};
-});
-
-document.getElementById("btn-ocr-discard").addEventListener("click", () => {
-  document.getElementById("ocr-results").style.display = "none";
-  document.getElementById("ocr-out").textContent = "Discarded.";
-  ocrParsed = {};
-});
-
-document.getElementById("btn-manual-ocr").addEventListener("click", () => {
-  const pb = document.getElementById("paste-box");
-  const pp = document.getElementById("btn-parse-paste");
-  const show = pb.style.display === "none";
-  pb.style.display = show ? "block" : "none";
-  pp.style.display = show ? "block" : "none";
-});
-
-document.getElementById("btn-parse-paste").addEventListener("click", () => {
-  const text = document.getElementById("paste-box").value;
-  const res = {};
-  STORAGE_ORDER.forEach(name => {
-    const esc = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    let m = text.match(new RegExp(esc + "[\\s\\S]{0,30}?([\\d,]+)", "i"));
-    if (m) { res[name] = parseInt(m[1].replace(/,/g, "")); return; }
-    m = text.match(new RegExp("([\\d,]+)[^\\n]{0,15}" + esc, "i"));
-    if (m) res[name] = parseInt(m[1].replace(/,/g, ""));
-  });
-  if (Object.keys(res).length) showOCRRes(res);
-  else document.getElementById("ocr-out").textContent = "No materials found in pasted text.";
-});
-
-load();
-window.addEventListener("load", function() {
-  if (window.alt1) {
-    A1lib.identifyApp("appconfig.json");
-    document.getElementById("alt1-badge").textContent = "Alt1 ✅";
-    document.getElementById("alt1-badge").classList.add("ok");
-    const sx = localStorage.getItem("archStorageWinX");
-    if (sx) document.getElementById("locate-status").textContent = "Window: (" + sx + ", " + localStorage.getItem("archStorageWinY") + ")";
-  }
-});
-renderMats();
-renderLegend();
-renderArts();
-updateStatus();
-</script>
-</body>
-</html>
+  S.session = { start: sessStart, snap: sessSnap, restores: []
